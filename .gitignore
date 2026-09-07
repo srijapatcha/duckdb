@@ -357,3 +357,13 @@ extension_external
 
 test/sql/pragma/output.json
 tools/pythonpkg/duckdb_build/
+
+# ProgramBench course-competition artifacts
+executable
+.programbench/venv/
+.programbench/gitconfig
+.programbench/home/
+.programbench/tests/
+.programbench/run/
+.programbench/shims/
+.programbench/tmux/

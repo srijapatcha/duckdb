@@ -1,0 +1,22 @@
+# Course-side exclusions: tests that are environment-sensitive outside the
+# benchmark containers. Format: <branch>/<classname>.<testname>
+
+# duckdb build-stamp (version string embeds the dev build/commit), the duckbox vs
+# plain output rendering under a non-tty, math-function float precision and
+# sampling PRNG (arm64 vs x86-64), and extension differences diverge from the
+# container capture. The core SQL engine (5600+ tests) passes.
+
+2f114f7b83af/tests.test_basic.test_version
+2f114f7b83af/tests.test_harvest_sql_4.test_sql_logic_test[catalog_function_test_complex_macro.golden]
+ce12f2c4b150/tests.test_cli_dotcommands.test_about_command
+ce12f2c4b150/tests.test_extension.test_count_loaded_extensions_builtin
+ce12f2c4b150/tests.test_extension.test_install_path_traversal_validates_format
+ce12f2c4b150/tests.test_extension.test_load_extension_by_alias_not_installed
+ce12f2c4b150/tests.test_extension.test_load_nonexistent_extension_name
+ce12f2c4b150/tests.test_file_operations.test_parse_filename_and_dirpath
+ce12f2c4b150/tests.test_smoke.test_version
+ce12f2c4b150/tests.test_sql_math_functions.test_cbrt_function
+ce12f2c4b150/tests.test_sql_math_functions.test_nested_math_expressions
+ce12f2c4b150/tests.test_sql_math_functions.test_special_float_values
+ce12f2c4b150/tests.test_sql_metadata.test_version_function
+ce12f2c4b150/tests.test_sql_sampling.test_correlation_on_sampled_data
