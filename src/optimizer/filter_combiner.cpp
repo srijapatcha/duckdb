@@ -431,13 +431,18 @@ FilterPushdownResult FilterCombiner::TryPushdownPrefixFilter(TableFilterSet &tab
 	//! Replace prefix with a set of comparisons
 	auto lower_bound = make_uniq<ConstantFilter>(ExpressionType::COMPARE_GREATERTHANOREQUALTO, Value(prefix_string));
 	table_filters.PushFilter(filter_idx, std::move(lower_bound));
-	if (FilterCombiner::FindNextLegalUTF8(prefix_string)) {
-		auto upper_bound = make_uniq<ConstantFilter>(ExpressionType::COMPARE_LESSTHAN, Value(prefix_string));
-		table_filters.PushFilter(filter_idx, std::move(upper_bound));
-		return FilterPushdownResult::PUSHED_DOWN_FULLY;
+	if ((unsigned char) prefix_string.back() == 0xBF) {
+		if (!FilterCombiner::FindNextLegalUTF8(prefix_string)) {
+			return FilterPushdownResult::NO_PUSHDOWN;
+		}
 	}
-	// could not find next legal utf8 string - skip upper bound
-	return FilterPushdownResult::NO_PUSHDOWN;
+	else {
+		prefix_string[prefix_string.size() - 1]++;
+	}
+	auto upper_bound = make_uniq<ConstantFilter>(ExpressionType::COMPARE_LESSTHAN, Value(prefix_string));
+	table_filters.PushFilter(filter_idx, std::move(upper_bound));
+	return FilterPushdownResult::PUSHED_DOWN_FULLY;
+	
 }
 
 FilterPushdownResult FilterCombiner::TryPushdownLikeFilter(TableFilterSet &table_filters,
@@ -491,10 +496,11 @@ FilterPushdownResult FilterCombiner::TryPushdownLikeFilter(TableFilterSet &table
 	//! We have a prefix - we can push down the prefix using a bound (x >= PREFIX AND x <= prefix + 1)
 	// Note that we still need to execute the LIKE filter
 	auto lower_bound = make_uniq<ConstantFilter>(ExpressionType::COMPARE_GREATERTHANOREQUALTO, Value(prefix));
-	prefix[prefix.size() - 1]++;
-	auto upper_bound = make_uniq<ConstantFilter>(ExpressionType::COMPARE_LESSTHAN, Value(prefix));
 	table_filters.PushFilter(proj_index, std::move(lower_bound));
-	table_filters.PushFilter(proj_index, std::move(upper_bound));
+	if (FilterCombiner::FindNextLegalUTF8(prefix)) {
+		auto upper_bound = make_uniq<ConstantFilter>(ExpressionType::COMPARE_LESSTHAN, Value(prefix));
+		table_filters.PushFilter(proj_index, std::move(upper_bound));
+	}
 	return FilterPushdownResult::PUSHED_DOWN_PARTIALLY;
 }
 
